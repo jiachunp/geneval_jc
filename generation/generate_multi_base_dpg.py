@@ -149,6 +149,10 @@ def main(opt):
         # Ensure output dir exists
         os.makedirs(opt.outdir, exist_ok=True)
         save_file = os.path.join(opt.outdir, prompt_name)
+        final_image_path = os.path.join(opt.outdir, f"{prompt_name}.png")
+        if os.path.exists(final_image_path):
+            print(f"[rank={rank}] Skip {prompt_name}: final image already exists")
+            continue
         os.makedirs(save_file, exist_ok=True)
 
         # Save prompt metadata next to outputs

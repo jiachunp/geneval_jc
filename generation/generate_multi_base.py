@@ -124,6 +124,15 @@ def main(opt):
         os.makedirs(outpath, exist_ok=True)
 
         sample_path = os.path.join(outpath, "samples")
+        if os.path.isdir(sample_path):
+            existing = [
+                fn for fn in os.listdir(sample_path)
+                if fn.endswith(".png") and fn[:-4].isdigit()   # only 00000.png style
+            ]
+            if len(existing) >= opt.n_samples:
+                print(f"[rank={rank}] Skip {global_idx:0>5}: already has {len(existing)}/{opt.n_samples} samples")
+                continue
+                
         os.makedirs(sample_path, exist_ok=True)
 
         # Save metadata once
