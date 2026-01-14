@@ -1,0 +1,10 @@
+{
+  "tag": "single_object",
+  "include": [
+    {
+      "class": "cow",
+      "count": 1
+    }
+  ],
+  "prompt": "a photo of a cow"
+}

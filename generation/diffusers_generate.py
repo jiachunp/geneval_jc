@@ -12,7 +12,8 @@ from einops import rearrange
 from torchvision.utils import make_grid
 from torchvision.transforms import ToTensor
 from pytorch_lightning import seed_everything
-from diffusers import DiffusionPipeline, StableDiffusionPipeline
+from pipeline_stable_diffusion_3 import StableDiffusion3Pipeline
+from transformer_sd3 import SD3Transformer2DModel
 
 
 torch.set_grad_enabled(False)
@@ -47,7 +48,7 @@ def parse_args():
     parser.add_argument(
         "--steps",
         type=int,
-        default=50,
+        default=28,
         help="number of ddim sampling steps",
     )
     parser.add_argument(
@@ -73,7 +74,7 @@ def parse_args():
     parser.add_argument(
         "--scale",
         type=float,
-        default=9.0,
+        default=4.0,
         help="unconditional guidance scale: eps = eps(x, empty) + scale * (eps(x, cond) - eps(x, empty))",
     )
     parser.add_argument(
@@ -102,12 +103,12 @@ def main(opt):
     with open(opt.metadata_file) as fp:
         metadatas = [json.loads(line) for line in fp]
 
-    # Load model
-    if opt.model == "stabilityai/stable-diffusion-xl-base-1.0":
-        model = DiffusionPipeline.from_pretrained(opt.model, torch_dtype=torch.float16, use_safetensors=True, variant="fp16")
-        model.enable_xformers_memory_efficient_attention()
-    else:
-        model = StableDiffusionPipeline.from_pretrained(opt.model, torch_dtype=torch.float16)
+
+    model = StableDiffusion3Pipeline.from_pretrained("/root/autodl-tmp/stable-diffusion-3-medium-diffusers", torch_dtype=torch.float16)
+    new_transformer = SD3Transformer2DModel.from_pretrained(
+        "/root/autodl-tmp/stable-diffusion-3-medium-diffusers/transformer",
+        torch_dtype=model.dtype)
+    model.transformer = new_transformer
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     model = model.to(device)
     model.enable_attention_slicing()
@@ -135,8 +136,6 @@ def main(opt):
                 # Generate images
                 samples = model(
                     prompt,
-                    height=opt.H,
-                    width=opt.W,
                     num_inference_steps=opt.steps,
                     guidance_scale=opt.scale,
                     num_images_per_prompt=min(batch_size, opt.n_samples - sample_count),
