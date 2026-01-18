@@ -3,8 +3,8 @@
 #     --outdir "generated"
 
 
-CUDA_VISIBLE_DEVICES=0, \
-torchrun --nproc_per_node=1 generation/generate_multi_base_dpg.py \
+CUDA_VISIBLE_DEVICES=0,1,2,3 \
+torchrun --nproc_per_node=4 generation/generate_multi_base_dpg.py \
     "./dpg_prompts" \
     --scale 7.0 \
-    --outdir "generated_dpg_base"
+    --outdir "results/generated_dpg_base_7"

@@ -43,13 +43,13 @@ def parse_args():
     parser.add_argument(
         "--sd3_path",
         type=str,
-        default="/root/autodl-tmp/stable-diffusion-3-medium-diffusers",
+        default="/home/aiops/zhangfz/pretrained_models/stable-diffusion-3-medium-diffusers",
         help="path to SD3 diffusers folder",
     )
     parser.add_argument(
         "--transformer_path",
         type=str,
-        default="/root/autodl-tmp/stable-diffusion-3-medium-diffusers/transformer",
+        default="/home/aiops/zhangfz/pretrained_models/stable-diffusion-3-medium-diffusers/transformer",
         help="path to transformer folder/ckpt",
     )
 

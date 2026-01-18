@@ -48,13 +48,13 @@ def parse_args():
     parser.add_argument(
         "--sd3_path",
         type=str,
-        default="/root/autodl-tmp/stable-diffusion-3-medium-diffusers",
+        default="/home/aiops/zhangfz/pretrained_models/stable-diffusion-3-medium-diffusers",
         help="path to SD3 diffusers folder",
     )
     parser.add_argument(
         "--transformer_path",
         type=str,
-        default="/root/autodl-tmp/stable-diffusion-3-medium-diffusers/transformer",
+        default="/home/aiops/zhangfz/pretrained_models/stable-diffusion-3-medium-diffusers/transformer",
         help="path to transformer folder/ckpt",
     )
 
@@ -173,7 +173,7 @@ def main(opt):
         #     json.dump(meta_out, fp, ensure_ascii=False, indent=2)
 
         batch_size = opt.batch_size
-        n_rows = batch_size
+        n_rows = batch_size*2
 
         print(f"[rank={rank}] Prompt ({global_idx: >5}/{len(metadatas)} | {prompt_name}): {prompt!r}")
 
