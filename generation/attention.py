@@ -699,7 +699,6 @@ class JointTransformerBlock(nn.Module):
             norm_encoder_hidden_states, c_gate_msa, c_shift_mlp, c_scale_mlp, c_gate_mlp = self.norm1_context(
                 encoder_hidden_states, emb=temb
             )
-
         # Attention.
         attn_output, context_attn_output = self.attn(
             hidden_states=norm_hidden_states,

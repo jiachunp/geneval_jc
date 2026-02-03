@@ -69,7 +69,11 @@ class BatchedClassifierFreeGuidanceLogitsProcessor(LogitsProcessor):
     
     def __call__(self, input_ids, scores):
 
-        #scores = torch.nn.functional.log_softmax(scores, dim=-1)
+        # scores = torch.nn.functional.log_softmax(scores, dim=-1)
+        # cond_scores = scores[0, :] 
+        # uncond_scores = scores[1, :]
+        # scores_processed = self.guidance_scale * (cond_scores - uncond_scores) + uncond_scores
+        
         cond_logits = scores[0, :]
         uncond_logits = scores[1, :]
         variance_cond = cond_logits.pow(2).mean(-1, keepdim=True)
@@ -81,7 +85,7 @@ class BatchedClassifierFreeGuidanceLogitsProcessor(LogitsProcessor):
 
         unconditional_logits_scaled = uncond_logits * scale
         
-        scores_processed = 7 * (cond_logits - unconditional_logits_scaled) + unconditional_logits_scaled
+        scores_processed = self.guidance_scale * (cond_logits - unconditional_logits_scaled) + unconditional_logits_scaled
         
         norm_scores_processed, _ = self.model.model.norm(scores_processed)
         

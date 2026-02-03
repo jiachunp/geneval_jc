@@ -15,6 +15,7 @@ from transformers import AutoTokenizer, AutoModel, AutoImageProcessor
 from transformers.generation.configuration_utils import GenerationConfig
 from transformers.generation import LogitsProcessorList, PrefixConstrainedLogitsProcessor
 from logits_process_attnsave import BatchedClassifierFreeGuidanceLogitsProcessor
+from logits_process import UnbatchedClassifierFreeGuidanceLogitsProcessor
 import sys
 sys.path.append("./")
 from emu3.mllm.modeling_emu3_attnsave import Emu3ForCausalLM
@@ -169,7 +170,7 @@ def generate_images_for_prompt(
     w = pos_inputs.image_size[:, 1]
     constrained_fn = processor.build_prefix_constrained_fn(h, w)
     logits_processor = LogitsProcessorList([
-        BatchedClassifierFreeGuidanceLogitsProcessor(
+        UnbatchedClassifierFreeGuidanceLogitsProcessor(
             opt.classifier_free_guidance,
             model,
             unconditional_ids=neg_inputs.input_ids.to(device),
@@ -241,7 +242,7 @@ def main(opt):
         save_file = opt.outdir
         final_img_path = os.path.join(opt.outdir, f"{prompt_name}.png")
         
-        if os.path.isdir(final_img_path):
+        if os.path.isfile(final_img_path):
             print(f"[rank={rank}] Skip {prompt_name}: final image already exists")
             continue
         

@@ -315,20 +315,24 @@ class SD3Transformer2DModel(
             # Skip specified layers
             is_skip = True if skip_layers is not None and index_block in skip_layers else False
 
+            # Add block index to joint_attention_kwargs
+            current_joint_attention_kwargs = joint_attention_kwargs.copy() if joint_attention_kwargs else {}
+            current_joint_attention_kwargs['block_index'] = index_block
+
             if torch.is_grad_enabled() and self.gradient_checkpointing and not is_skip:
                 encoder_hidden_states, hidden_states = self._gradient_checkpointing_func(
                     block,
                     hidden_states,
                     encoder_hidden_states,
                     temb,
-                    joint_attention_kwargs,
+                    current_joint_attention_kwargs,
                 )
             elif not is_skip:
                 encoder_hidden_states, hidden_states = block(
                     hidden_states=hidden_states,
                     encoder_hidden_states=encoder_hidden_states,
                     temb=temb,
-                    joint_attention_kwargs=joint_attention_kwargs,
+                    joint_attention_kwargs=current_joint_attention_kwargs,
                 )
 
             # controlnet residual

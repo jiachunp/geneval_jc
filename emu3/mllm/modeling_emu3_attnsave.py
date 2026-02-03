@@ -117,11 +117,13 @@ def copy_and_mask_uncond_attn(attn_probs, flag_indexes, pad_value=-2):
     new_attn = attn_probs.clone()
     eps = 1e-12
 
+    #import pdb; pdb.set_trace()
     # 2) Build padding mask for second sample (uncond)
     if flag_indexes.dim() == 2:           # (B, K)
         cond_flags = flag_indexes[0]      # (K,)
         uncond_flags = flag_indexes[1]    # (K,)
         pad_mask = ((uncond_flags == -2) | (uncond_flags == -1)) & (cond_flags == 0)  # (K,)
+        # pad_mask = ((uncond_flags == -2) | (uncond_flags == -1))
         pad_mask = pad_mask.view(1, K)  # (1,1,K) for broadcasting
     elif flag_indexes.dim() == 3:         # (B,1,K)
         cond_flags = flag_indexes[0, 0]   # (K,)
@@ -140,6 +142,7 @@ def copy_and_mask_uncond_attn(attn_probs, flag_indexes, pad_value=-2):
 
     # 4) Renormalize over K for the uncond sample
     denom = new_attn.sum(dim=-1, keepdim=True).clamp_min(eps)  # (H, Q, 1)
+    #denom = new_attn.sum(dim=-1, keepdim=True)
     new_attn = new_attn / denom
     
     #import pdb; pdb.set_trace()
@@ -506,7 +509,7 @@ class Emu3Attention(nn.Module):
         value_states = repeat_kv(value_states, self.num_key_value_groups)
         
         #print(query_states.shape)
-        if query_states.shape[2] == 1:
+        if query_states.shape[2] == 1 and self.layer_idx not in [0, 1, 2, 3, 4, 5, 28, 29, 30, 31]:
             query_states_cond = query_states[0,:]
             key_states_cond = key_states[0,:]
             attn_weights = torch.matmul(query_states_cond, key_states_cond.transpose(1, 2)) / math.sqrt(self.head_dim)
@@ -530,10 +533,11 @@ class Emu3Attention(nn.Module):
 
         # upcast attention to fp32
         attn_weights = nn.functional.softmax(attn_weights, dim=-1, dtype=torch.float32).to(query_states.dtype)
-        
-        if flag_indexes is not None and query_states.shape[2] == 1:
+        #print(self.layer_idx)
+        if query_states.shape[2] == 1 and self.layer_idx not in [0, 1, 2, 3, 4, 5, 28, 29, 30, 31]:
             attn_weights_uncond = copy_and_mask_uncond_attn(attn_weights, flag_indexes)
             attn_weights = torch.stack([attn_weights, attn_weights_uncond], dim=0)
+        
 
         attn_weights = nn.functional.dropout(attn_weights, p=self.attention_dropout, training=self.training)
         attn_output = torch.matmul(attn_weights, value_states)
@@ -1359,14 +1363,14 @@ class Emu3ForCausalLM(Emu3PreTrainedModel):
         )
 
         hidden_states = outputs[0]
-        # if self.config.pretraining_tp > 1:
-        #     lm_head_slices = self.lm_head.weight.split(self.vocab_size // self.config.pretraining_tp, dim=0)
-        #     logits = [F.linear(hidden_states, lm_head_slices[i]) for i in range(self.config.pretraining_tp)]
-        #     logits = torch.cat(logits, dim=-1)
-        # else:
-        #     logits = self.lm_head(hidden_states)
-        # logits = logits.float()
-        logits = outputs.last_before_norm_hs
+        if self.config.pretraining_tp > 1:
+            lm_head_slices = self.lm_head.weight.split(self.vocab_size // self.config.pretraining_tp, dim=0)
+            logits = [F.linear(hidden_states, lm_head_slices[i]) for i in range(self.config.pretraining_tp)]
+            logits = torch.cat(logits, dim=-1)
+        else:
+            logits = self.lm_head(hidden_states)
+        logits = logits.float()
+        #logits = outputs.last_before_norm_hs
 
         loss = None
         if labels is not None:

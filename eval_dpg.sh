@@ -6,4 +6,4 @@
 CUDA_VISIBLE_DEVICES=0, \
 torchrun --nproc_per_node=1 generation/generate_multi_dpg.py \
     "./dpg_prompts" \
-    --outdir "generated_dpg"
+    --outdir "generated_dpg_no_odd"

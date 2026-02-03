@@ -654,17 +654,17 @@ class Attention(nn.Module):
         # The `Attention` class can call different attention processors / attention functions
         # here we simply pass along all tensors to the selected processor class
         # For standard processors that are defined here, `**cross_attention_kwargs` is empty
-        
+        #import pdb; pdb.set_trace()
         attn_parameters = set(inspect.signature(self.processor.__call__).parameters.keys())
         quiet_attn_parameters = {"ip_adapter_masks", "ip_hidden_states"}
         unused_kwargs = [
             k for k, _ in cross_attention_kwargs.items() if k not in attn_parameters and k not in quiet_attn_parameters
         ]
-        if len(unused_kwargs) > 0:
-            logger.warning(
-                f"cross_attention_kwargs {unused_kwargs} are not expected by {self.processor.__class__.__name__} and will be ignored."
-            )
-        cross_attention_kwargs = {k: w for k, w in cross_attention_kwargs.items() if k in attn_parameters}
+        # if len(unused_kwargs) > 0:
+        #     logger.warning(
+        #         f"cross_attention_kwargs {unused_kwargs} are not expected by {self.processor.__class__.__name__} and will be ignored."
+        #     )
+        cross_attention_kwargs = {k: w for k, w in cross_attention_kwargs.items() if k in attn_parameters or k in ['block_index']}
 
         return self.processor(
             self,
@@ -1497,7 +1497,8 @@ class JointAttnProcessor2_0:
         *args,
         **kwargs,
     ) -> torch.FloatTensor:
-        #import pdb; pdb.set_trace()
+        
+        block_index = kwargs.pop('block_index', None)
         residual = hidden_states
 
         batch_size = hidden_states.shape[0]
@@ -1544,7 +1545,11 @@ class JointAttnProcessor2_0:
             key = torch.cat([key, encoder_hidden_states_key_proj], dim=2)
             value = torch.cat([value, encoder_hidden_states_value_proj], dim=2)
 
-        hidden_states = scaled_dot_product_reattention(query, key, value, dropout_p=0.0, is_causal=False)
+        # hidden_states = scaled_dot_product_reattention(query, key, value, dropout_p=0.0, is_causal=False)
+        if block_index in [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 19, 20, 21, 22, 23]:
+            hidden_states = scaled_dot_product_attention(query, key, value, dropout_p=0.0, is_causal=False)
+        else:
+            hidden_states = scaled_dot_product_reattention(query, key, value, dropout_p=0.0, is_causal=False)
         hidden_states = hidden_states.transpose(1, 2).reshape(batch_size, -1, attn.heads * head_dim)
         hidden_states = hidden_states.to(query.dtype)
 

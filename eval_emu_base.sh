@@ -6,5 +6,5 @@
 CUDA_VISIBLE_DEVICES=0, \
 torchrun --nproc_per_node=1 gen_AR/image_generation.py \
     "./prompts/evaluation_metadata.jsonl" \
-    --classifier_free_guidance 7.0 \
-    --outdir "generated_emu3_base"
+    --classifier_free_guidance 10.0 \
+    --outdir "generated_emu3_base_cfg10"

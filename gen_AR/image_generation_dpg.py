@@ -240,7 +240,7 @@ def main(opt):
         save_file = opt.outdir
         final_img_path = os.path.join(opt.outdir, f"{prompt_name}.png")
         
-        if os.path.isdir(final_img_path):
+        if os.path.isfile(final_img_path):
             print(f"[rank={rank}] Skip {prompt_name}: final image already exists")
             continue
         
