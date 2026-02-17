@@ -509,7 +509,7 @@ class Emu3Attention(nn.Module):
         value_states = repeat_kv(value_states, self.num_key_value_groups)
         
         #print(query_states.shape)
-        if query_states.shape[2] == 1 and self.layer_idx not in [0, 1, 2, 3, 4, 5, 28, 29, 30, 31]:
+        if query_states.shape[2] == 1 and self.layer_idx not in [0, 1, 2, 3, 4, 5, 6, 7, 24, 25, 26, 27, 28, 29, 30, 31]:
             query_states_cond = query_states[0,:]
             key_states_cond = key_states[0,:]
             attn_weights = torch.matmul(query_states_cond, key_states_cond.transpose(1, 2)) / math.sqrt(self.head_dim)
@@ -534,7 +534,7 @@ class Emu3Attention(nn.Module):
         # upcast attention to fp32
         attn_weights = nn.functional.softmax(attn_weights, dim=-1, dtype=torch.float32).to(query_states.dtype)
         #print(self.layer_idx)
-        if query_states.shape[2] == 1 and self.layer_idx not in [0, 1, 2, 3, 4, 5, 28, 29, 30, 31]:
+        if query_states.shape[2] == 1 and self.layer_idx not in [0, 1, 2, 3, 4, 5, 6, 7, 24, 25, 26, 27, 28, 29, 30, 31]:
             attn_weights_uncond = copy_and_mask_uncond_attn(attn_weights, flag_indexes)
             attn_weights = torch.stack([attn_weights, attn_weights_uncond], dim=0)
         
