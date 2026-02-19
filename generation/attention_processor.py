@@ -1546,7 +1546,8 @@ class JointAttnProcessor2_0:
             value = torch.cat([value, encoder_hidden_states_value_proj], dim=2)
 
         # hidden_states = scaled_dot_product_reattention(query, key, value, dropout_p=0.0, is_causal=False)
-        if block_index in [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 19, 20, 21, 22, 23]:
+        #if block_index in [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 19, 20, 21, 22, 23]:
+        if block_index in [0, 1, 2, 3, 4, 5, 9, 10, 12, 13, 14, 16, 18, 19, 20, 21, 22]:
             hidden_states = scaled_dot_product_attention(query, key, value, dropout_p=0.0, is_causal=False)
         else:
             hidden_states = scaled_dot_product_reattention(query, key, value, dropout_p=0.0, is_causal=False)
