@@ -176,6 +176,11 @@ def generate_images_for_prompt(
                     break
         if len(images) >= n_samples:
             break
+
+    # Free GPU memory from generation so next sample doesn't accumulate (avoids 25G -> 50G peak)
+    del outputs
+    if device.type == "cuda":
+        torch.cuda.empty_cache()
     
     return images[:n_samples]  # Ensure we only return n_samples
 
@@ -258,6 +263,10 @@ def main(opt):
                     break
                 img.save(os.path.join(sample_path, f"{sample_count:05}.png"))
                 sample_count += 1
+
+        # Free memory after this prompt's samples so next prompt doesn't see 2x peak
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
     
     # Optional: make sure everything is done before exit
     if torch.cuda.is_available():
