@@ -47,6 +47,7 @@ def parse_args():
     
     # Generation parameters
     parser.add_argument("--classifier_free_guidance", type=float, default=1.0, help="classifier free guidance scale")
+    parser.add_argument("--temperature", type=float, default=1.0, help="temperature")
     parser.add_argument("--positive_prompt", type=str, default="", help="positive prompt suffix")
     parser.add_argument("--negative_prompt", type=str, default="", help="negative prompt")
     parser.add_argument("--ratio", type=str, default="1:1", help="image ratio (e.g., 1:1, 16:9)")
@@ -110,6 +111,7 @@ def generate_images_for_prompt(
     device: torch.device,
     generator: Optional[torch.Generator] = None,
     n_samples: int = 1,
+    temperature: float = 1.0,
 ):
     """Generate images for a single prompt."""
     # Prepare prompts: always add a blank prompt "" after the formal prompt (as in original code)
@@ -134,7 +136,9 @@ def generate_images_for_prompt(
         eos_token_id=model.config.eos_token_id,
         pad_token_id=model.config.pad_token_id,
         max_new_tokens=40960,
-        do_sample=False,
+        do_sample=True,
+        top_k=2048,
+        temperature=temperature,
     )
     
     # Prepare logits processor
@@ -250,6 +254,7 @@ def main(opt):
                 device,
                 generator,
                 n_samples=cur_bs,
+                temperature=opt.temperature,
             )
             
             for img in images:
@@ -258,10 +263,17 @@ def main(opt):
                 img.save(os.path.join(sample_path, f"{sample_count:05}.png"))
                 sample_count += 1
                 
+<<<<<<< Updated upstream
             # Free memory after this prompt's samples so next prompt doesn't see 2x peak
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
                 
+=======
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+
+        # Free memory after this prompt's samples so next prompt doesn't see 2x peak
+>>>>>>> Stashed changes
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
     
